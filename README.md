@@ -18,6 +18,9 @@ A client-side plugin for [DSH](https://github.com/deepseek-ai) (DeepSeek Harness
 | **通用卡片** | 选中任何 2~200 字符的文本都弹卡片——不在词典里的也能朗读 + 复制给主助手 |
 | **英文在线词典** | 选中英文单词自动查 [Free Dictionary API](https://dictionaryapi.dev/)，显示释义、词性、发音、例句 |
 | **语音朗读 🔊** | 用浏览器原生 `speechSynthesis` 朗读选中文本，零联网、零额度、中英文皆可 |
+| **深色模式适配 🌙** | 自动检测 DSH 深色/浅色主题，卡片配色跟随，不刺眼 |
+| **卡片淡入动画** | 浮层出现时有轻微淡入效果，更自然不突兀 |
+| **自定义词条 ➕** | 卡片底部「➕ 加词」，填表单即可添加自己的术语，存 localStorage 重启不丢 |
 | **复制给主助手** | 一键复制选中文本到剪贴板，方便粘贴到对话里让 AI 深入解释 |
 | **零打扰保证** | 全部在浏览器内完成，不进 session 对话历史，不调用任何主助手工具 |
 
@@ -77,7 +80,18 @@ npm install dsh-client-term-glossary
 
 ## 🔧 自定义 Customize
 
-### 加词 / 改解释
+### 方式一：卡片上加词（推荐，不用改代码）
+
+选中任意词弹出卡片后，点底部的 **「➕ 加词」**，填写：
+
+- **术语**（多个用逗号分隔，如 `API, 接口`）
+- **一句话解释** / **打比方** / **在 DSH 里**
+
+点保存即可。词条存在浏览器 `localStorage`（key: `dsh-term-glossary-custom-v1`），**重启不丢**，下次选中就能看到。
+
+> 清空自定义词条：浏览器控制台执行 `localStorage.removeItem('dsh-term-glossary-custom-v1')` 后刷新。
+
+### 方式二：改代码内置
 
 编辑 `lib/client.js` 中的 `GLOSSARY` 数组，照着已有条目加一项即可：
 
@@ -103,6 +117,9 @@ npm install dsh-client-term-glossary
 - **匹配优先级**：精确匹配 > 模糊匹配（去提问式前后缀） > 智能包含匹配（多匹配取最长） > 报错识别 > 命令识别 > 通用卡片。
 - **语音朗读**：浏览器原生 `speechSynthesis` API，自动选择中文/英文语音，`rate: 0.9`。
 - **英文在线词典**：`fetch` 到 `api.dictionaryapi.dev`（免费、无需 API key、支持 CORS），失败时静默降级。
+- **主题适配**：优先读 `data-theme` 属性 / `prefers-color-scheme`，再回退到 `body` 背景亮度检测（`0.299R+0.587G+0.114B < 0.5` 判定为深色）。
+- **淡入动画**：注入 `@keyframes dsh-tg-fade-in`（`opacity` + `translateY` + `scale`，140ms），通过 `className` 应用。
+- **自定义词条**：存 `localStorage['dsh-term-glossary-custom-v1']`，插件启动时合并进 `GLOSSARY` 数组。
 - **host 半侧** `lib/index.js`：最小骨架（空 `apply`），插件不需要 host 侧服务。
 - **全部 try/catch 兜底**：最坏情况只是浮层不出现，不会影响主界面。
 
