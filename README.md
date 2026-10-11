@@ -1,7 +1,7 @@
 # dsh-client-term-glossary · 划词即解释
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
-[![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](https://github.com/1qw23er/dsh-client-term-glossary/releases)
+[![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)](https://github.com/1qw23er/dsh-client-term-glossary/releases)
 [![DSH Plugin](https://img.shields.io/badge/DSH-client%20plugin-8a2be2.svg)](https://github.com/1qw23er/dsh-client-term-glossary)
 [![Zero Network](https://img.shields.io/badge/词典查询-零联网-success.svg)](#-技术细节-technical)
 [![No AI Cost](https://img.shields.io/badge/AI%20调用-0%20次-brightgreen.svg)](#-技术细节-technical)
@@ -39,7 +39,8 @@ A client-side plugin for [DSH](https://github.com/deepseek-ai) (DeepSeek Harness
 | **深色模式适配 🌙** | 自动检测 DSH 深色/浅色主题，卡片配色跟随，不刺眼 |
 | **卡片淡入动画** | 浮层出现时有轻微淡入效果，更自然不突兀 |
 | **自定义词条 ➕** | 卡片底部「➕ 加词」，填表单即可添加自己的术语，存 localStorage 重启不丢 |
-| **复制给主助手** | 一键复制选中文本到剪贴板，方便粘贴到对话里让 AI 深入解释 |
+| **✍️ 填入输入框** | 一键把问题填进 DSH 输入框（追加式，不清空你已打的字），你确认后按回车发送 |
+| **复制** | 复制选中文本到剪贴板，方便自己粘贴使用 |
 | **零打扰保证** | 全部在浏览器内完成，不进 session 对话历史，不调用任何主助手工具 |
 
 ---
@@ -93,6 +94,19 @@ npm install dsh-client-term-glossary
 | `hello`（英文单词） | 在线词典：释义、词性、发音、例句 |
 | `智能体`（中文，不在词典里） | 通用卡片：可朗读 + 复制给主助手 |
 | `今天天气不错`（普通句子） | 通用卡片：可朗读 + 复制给主助手 |
+
+---
+
+### 卡片底部的按钮
+
+| 按钮 | 做什么 | 会不会自动发送 |
+|---|---|---|
+| **✍️ 填入输入框** | 把「这是什么意思」的提问填进 DSH 输入框 | ❌ 不会，你自己按回车才发 |
+| **🔊 朗读** | 朗读选中的词 | — |
+| **➕ 加词** | 添加自定义词条 | — |
+| **复制** | 复制到剪贴板 | — |
+
+> **关于「填入输入框」**：它通过 DSH 的 Lexical 编辑器插入文本，采用**追加**方式——如果你输入框里已经打了字，会把提问加到后面，**不会覆盖**。填入后卡片自动收起，你确认措辞没问题再按回车。
 
 ---
 
