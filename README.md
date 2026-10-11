@@ -1,8 +1,26 @@
 # dsh-client-term-glossary · 划词即解释
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+[![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](https://github.com/1qw23er/dsh-client-term-glossary/releases)
+[![DSH Plugin](https://img.shields.io/badge/DSH-client%20plugin-8a2be2.svg)](https://github.com/1qw23er/dsh-client-term-glossary)
+[![Zero Network](https://img.shields.io/badge/词典查询-零联网-success.svg)](#-技术细节-technical)
+[![No AI Cost](https://img.shields.io/badge/AI%20调用-0%20次-brightgreen.svg)](#-技术细节-technical)
+
 > DSH (DeepSeek Harness) 客户端插件：选中任意文本即弹出大白话解释浮层，旁路进行，不打扰主任务。
 
 A client-side plugin for [DSH](https://github.com/deepseek-ai) (DeepSeek Harness) that shows plain-language explanations when you select any text in the web UI. Zero interference with the main task — no session pollution, no AI calls for dictionary hits, no network for TTS.
+
+---
+
+## 📸 效果预览 Screenshots
+
+**深色模式** — 选中 `subagent`，旁边浮出大白话解释：
+
+![深色模式演示](./docs/demo-dark.svg)
+
+**浅色模式** — 选中 `npm install`，显示命令组合解释（主题自动适配）：
+
+![浅色模式演示](./docs/demo-light.svg)
 
 ---
 
