@@ -15,11 +15,16 @@
   "dsh": {
     "client": {
       "platform": "web",
-      "inject": []
+      "inject": [
+        "@deepseek-ai/dsh-api-gateway",
+        "@deepseek-ai/dsh-typert-protocol"
+      ]
     }
   },
   "peerDependencies": {
-    "@deepseek-ai/cordis": "~4.0.4"
+    "@deepseek-ai/cordis": "~4.0.4",
+    "@deepseek-ai/dsh-llm": "*",
+    "@deepseek-ai/dsh-typert-protocol": "*"
   },
   "files": [
     "lib/index.js",
@@ -39,7 +44,9 @@
     "tooltip",
     "popover",
     "tts",
-    "text-to-speech"
+    "text-to-speech",
+    "ai-explain",
+    "side-channel"
   ],
   "author": "黎叔AI创业实验室",
   "license": "MIT",
