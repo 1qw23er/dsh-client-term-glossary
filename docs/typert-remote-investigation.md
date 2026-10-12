@@ -332,14 +332,46 @@ async function apply(ctx) {
 
 ---
 
-## 九、尚未验证的项（隔离测试待办）
+## 九、隔离测试验证结果（2026-10-12）
 
-- [ ] 自 mount 能否成功创建 `remote.<namespace>` 服务
-- [ ] host 侧 SRC 反射能否匹配到手写的 `wire` 名
-- [ ] `codec.create()` 返回的 schemastery schema 能否正确解析参数
-- [ ] 直接调用的返回值（无 `decode`）能否正确回到客户端
-- [ ] dispose 后命名空间是否干净卸载
-- [ ] 与 `dsh-api-remotes` 的 25 个官方贡献是否有命名冲突
+测试环境：独立 profile `glossary-test`（端口 3099），**未触碰生产 profile `web`**。
+
+### ✅ 已验证通过
+
+| 验证项 | 方法 | 结果 |
+|---|---|---|
+| **自 mount 创建命名空间服务** | 真实实例化网关 `ClientRemoteService`，调真 `$mount` | ✅ `remote.termGlossary` 成功创建，带 `explain`/`capability` 方法 |
+| **贡献描述符通过校验** | 走真实 `validateContribution` 路径 | ✅ 无 `arguments-invalid`，无 strict codec 报错 |
+| **dispose 可用** | `$mount` 返回 disposer | ✅ 返回函数，可挂 `ctx.effect` |
+| **host 服务注册** | 实例化 `TermGlossaryHost` | ✅ `serviceKey`/`namespace` 均为 `termGlossary` |
+| **host SRC 反射发现方法** | `remoteMethods(host)` | ✅ 发现 `explain`、`capability` |
+| **参数名匹配** | 反射函数签名 vs 手写 wire 名 | ✅ host 反射出 `text`，与贡献里 `wire:"text"` **完全一致** |
+| **参数校验通过** | 无真实连接下调用 `explain("subagent")` | ✅ 未报 `arguments-invalid`，仅卡在传输层 |
+| **插件激活** | 独立 profile 启动 | ✅ **0 个 `did not activate`**，无 `pending` |
+| **不破坏启动** | 对比生产 profile | ✅ 生产 3080 全程未受影响 |
+
+### 复现脚本
+
+| 脚本 | 作用 |
+|---|---|
+| `test/self-mount.spec.mjs` | 真实网关 `$mount` 全链路验证（含 DOM/Cordis 桩） |
+| `test/host-remote-methods.spec.mjs` | host 侧服务注册 + SRC 反射参数名验证 |
+
+### 传输层失败的正确形态
+
+无真实连接时，网关**不抛异常**，而是返回结构化 `RemoteError`：
+
+```javascript
+{ ok: false, error: { code: "gateway/internal", isDSHRemoteError: true, ... } }
+```
+
+**客户端必须处理这种"返回的错误对象"**，不能假设会 throw。
+
+### ⏳ 仍需真实浏览器验证
+
+- [ ] 浏览器加载客户端插件后，自 mount 是否在真实环境成功
+- [ ] 端到端 RPC：客户端 `explain()` → host `ctx.llm.stream()` → 返回解释
+- [ ] 与 `dsh-api-remotes` 的 25 个官方贡献是否有命名冲突（静态分析无冲突）
 
 ---
 
