@@ -1,7 +1,7 @@
 {
   "name": "dsh-client-term-glossary",
-  "version": "1.2.0",
-  "description": "DSH 划词即解释插件：选中术语/报错/命令即弹大白话解释浮层，含 139 条本地词典、英文在线词典、语音朗读、深色模式适配、自定义词条、一键填入输入框，旁路进行不打扰主任务",
+  "version": "1.8.0",
+  "description": "DSH 划词即解释插件：选中术语/报错/命令即弹大白话解释浮层，含 139 条本地词典、英文在线词典、语音朗读、深色模式适配、自定义词条、一键填入输入框；AI 解释走 Chrome 内置本地模型或浏览器直连 OpenRouter（可配模型与 max_tokens），旁路进行不打扰主任务",
   "main": "lib/index.js",
   "exports": {
     ".": {
@@ -14,23 +14,18 @@
   },
   "dsh": {
     "client": {
-      "platform": "web",
-      "inject": [
-        "@deepseek-ai/dsh-api-gateway",
-        "@deepseek-ai/dsh-typert-protocol"
-      ]
+      "platform": "web"
     }
   },
   "peerDependencies": {
-    "@deepseek-ai/cordis": "~4.0.4",
-    "@deepseek-ai/dsh-llm": "*",
-    "@deepseek-ai/dsh-typert-protocol": "*"
+    "@deepseek-ai/cordis": "~4.0.4"
   },
   "files": [
     "lib/index.js",
     "lib/client.js",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "test.mjs"
   ],
   "keywords": [
     "dsh",
@@ -46,6 +41,7 @@
     "tts",
     "text-to-speech",
     "ai-explain",
+    "openrouter",
     "side-channel"
   ],
   "author": "黎叔AI创业实验室",
@@ -61,5 +57,8 @@
   "type": "module",
   "engines": {
     "node": ">=18"
+  },
+  "scripts": {
+    "test": "node test.mjs"
   }
 }
