@@ -1,10 +1,10 @@
 # dsh-client-term-glossary · 划词即解释
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
-[![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)](https://github.com/1qw23er/dsh-client-term-glossary/releases)
+[![Version](https://img.shields.io/badge/version-1.8.0-blue.svg)](https://github.com/1qw23er/dsh-client-term-glossary/releases)
 [![DSH Plugin](https://img.shields.io/badge/DSH-client%20plugin-8a2be2.svg)](https://github.com/1qw23er/dsh-client-term-glossary)
 [![Zero Network](https://img.shields.io/badge/词典查询-零联网-success.svg)](#-技术细节-technical)
-[![No AI Cost](https://img.shields.io/badge/AI%20调用-0%20次-brightgreen.svg)](#-技术细节-technical)
+[![AI Optional](https://img.shields.io/badge/AI%20解释-可选按需-brightgreen.svg)](#-ai-解释optional)
 
 > DSH (DeepSeek Harness) 客户端插件：选中任意文本即弹出大白话解释浮层，旁路进行，不打扰主任务。
 
@@ -34,6 +34,8 @@ A client-side plugin for [DSH](https://github.com/deepseek-ai) (DeepSeek Harness
 | **命令组合识别** | `npm install`、`git commit`、`rm -rf`、`docker run` 等常见命令有独立解释 |
 | **报错识别** | 选中报错文本（TypeError、ENOENT、ModuleNotFoundError…）给「怎么读这个错」的引导 |
 | **通用卡片** | 选中任何 2~200 字符的文本都弹卡片——不在词典里的也能朗读 + 复制给主助手 |
+| **🤖 AI 深入解释** | 词典没收录的，交给 AI 用「四行大白话」讲清楚。两条通道：Chrome 内置本地模型（免费离线）或浏览器直连 OpenRouter（可选，需自备 key） |
+| **模型可配** | 可切换 OpenRouter 模型、调整 `max_tokens`，默认用又快又便宜的非推理模型，详见 [AI 解释](#-ai-解释optional) |
 | **英文在线词典** | 选中英文单词自动查 [Free Dictionary API](https://dictionaryapi.dev/)，显示释义、词性、发音、例句 |
 | **语音朗读 🔊** | 用浏览器原生 `speechSynthesis` 朗读选中文本，零联网、零额度、中英文皆可 |
 | **深色模式适配 🌙** | 自动检测 DSH 深色/浅色主题，卡片配色跟随，不刺眼 |
@@ -101,6 +103,8 @@ npm install dsh-client-term-glossary
 
 | 按钮 | 做什么 | 会不会自动发送 |
 |---|---|---|
+| **🤖 AI 深入解释** | 让 AI 用四行大白话解释选中内容（旁路进行，不进会话） | ❌ 不会 |
+| **🔑 设置 API Key** | 填 OpenRouter key、切换模型、调 `max_tokens` | — |
 | **✍️ 填入输入框** | 把「这是什么意思」的提问填进 DSH 输入框 | ❌ 不会，你自己按回车才发 |
 | **🔊 朗读** | 朗读选中的词 | — |
 | **➕ 加词** | 添加自定义词条 | — |
@@ -141,19 +145,60 @@ npm install dsh-client-term-glossary
 
 ---
 
+## 🤖 AI 解释（Optional）
+
+点「🤖 AI 深入解释」时，按以下顺序尝试：
+
+### 通道 1 · Chrome 内置 AI（本地）
+浏览器自带的小模型，**免费、离线、内容不出本机**。需要 Chrome 支持
+`LanguageModel` API；不支持就自动跳到通道 2。
+
+### 通道 2 · 浏览器直连 OpenRouter（云端）
+浏览器直接 `fetch` OpenRouter，**非流式**，一次请求拿完整结果。
+- 需要自备 OpenRouter API Key（存浏览器 `localStorage`，**不上传 DSH**）
+- 通过卡片上的 **🔑 设置 API Key** 填写
+
+> **为什么不用 DSH 的 `ctx.llm.stream`？**
+> 实测该路径的输出经内部 `BlockAssembler` 组装后**返回空内容**（同一个请求
+> 直连 OpenRouter 3 秒内正常返回）。因此 v1.4 起废弃 host RPC 通道，
+> 改为浏览器直连；v1.8 已把相关 host 代码彻底移除。
+
+### 模型选择
+
+默认模型是 **`deepseek/deepseek-v4-flash`**。原因是一组实测对比
+（同一请求，解释「BlockAssembler」）：
+
+| 模型 | 耗时 | 完成 tokens | 其中推理 | 成本 |
+|---|---|---|---|---|
+| `deepseek/deepseek-v4.1-flash` | 23.3s | 2242 | 2168 | $0.00149 |
+| **`deepseek/deepseek-v4-flash`** | **2.5s** | **43** | **0** | **$0.00004** |
+
+推理模型会把绝大部分 token 花在 `reasoning` 上——实测有 96% 的完成 token
+是推理。后果是**慢**、**贵**，而且 `max_tokens` 给小了会出现「推理把配额
+吃光、正文为空」（`finish_reason: length` + `content: null`）。
+
+因此：默认用非推理的 v4-flash（快约 9 倍、便宜约 36 倍），
+`max_tokens` 默认 **4000**（可调 256–32000）。切到推理模型时建议提到 8000+。
+
+---
+
 ## 🏗️ 技术细节 Technical
 
 - **浏览器侧入口** `lib/client.js`：通过 `window.__ModuleLoader__.load({ id, factory })` 自注册，符合 DSH 客户端 bundle 契约（与官方 `dsh-client-hmr`、`dsh-client-locale` 同款格式）。
 - **React 浮层**：用 `createPortal` 挂到 `document.body`，与 DSH 自身 UI 树隔离；容器 `all:initial` 隔离样式。
 - **选区监听**：`mouseup`（延迟一帧）+ `selectionchange` + `mousedown`（capture），确保点击卡片不关闭、点空白处关闭。
+  - ⚠️ 卡片内的输入框/下拉框有专门的 `isInsideCard()` 守卫：点输入框会导致选区塌缩，早先版本会因此误关浮层（v1.7 修复）。
 - **匹配优先级**：精确匹配 > 模糊匹配（去提问式前后缀） > 智能包含匹配（多匹配取最长） > 报错识别 > 命令识别 > 通用卡片。
 - **语音朗读**：浏览器原生 `speechSynthesis` API，自动选择中文/英文语音，`rate: 0.9`。
 - **英文在线词典**：`fetch` 到 `api.dictionaryapi.dev`（免费、无需 API key、支持 CORS），失败时静默降级。
+- **AI 通道 1**：Chrome 内置 `LanguageModel` API，`probe()` 先探测可用性，不可用则静默回退。
+- **AI 通道 2**：浏览器直连 `openrouter.ai/api/v1/chat/completions`（非流式，`AbortController` 60s 超时）。key/模型/`max_tokens` 分别存 localStorage，`max_tokens` 读取时做范围钳制。
 - **主题适配**：优先读 `data-theme` 属性 / `prefers-color-scheme`，再回退到 `body` 背景亮度检测（`0.299R+0.587G+0.114B < 0.5` 判定为深色）。
 - **淡入动画**：注入 `@keyframes dsh-tg-fade-in`（`opacity` + `translateY` + `scale`，140ms），通过 `className` 应用。
 - **自定义词条**：存 `localStorage['dsh-term-glossary-custom-v1']`，插件启动时合并进 `GLOSSARY` 数组。
-- **host 半侧** `lib/index.js`：最小骨架（空 `apply`），插件不需要 host 侧服务。
+- **host 半侧** `lib/index.js`：极简占位（`inject = []`），插件**不依赖任何 host 侧服务**——这样即使 DSH 内部服务改名/重构也不会激活失败。
 - **全部 try/catch 兜底**：最坏情况只是浮层不出现，不会影响主界面。
+- **回归测试**：`npm test`（46 项），覆盖焦点/关闭逻辑、云端配置钳制、死代码与版本一致性。
 
 ---
 
